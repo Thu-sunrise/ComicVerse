@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: comicverse-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - comicverse-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: comicverse-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    restart: unless-stopped
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - comicverse-network
+
+  eureka-server:
+    image: springcloud/eureka
+    container_name: comicverse-eureka
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+    environment:
+      - spring.application.name=eureka-server
+      - server.port=8761
+      - eureka.client.register-with-eureka=false
+      - eureka.client.fetch-registry=false
+    networks:
+      - comicverse-network
+
+volumes:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  comicverse-network:
+    driver: bridge
