@@ -1,0 +1,21 @@
+# Environment files with credentials
+.env
+
+# Maven build output
+apps/web-reader/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# node_modules
+node_modules/
+dist/
+
+# services
+services/**/target/

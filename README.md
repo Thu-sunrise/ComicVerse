@@ -88,16 +88,45 @@ docker-compose up -d
 - RabbitMQ Management UI: `http://localhost:15672`
 - Eureka Dashboard: `http://localhost:8761`
 
-**3. Khởi chạy Backend Services**
-Mở thư mục `services/` bằng IntelliJ IDEA hoặc Eclipse. 
-Bạn cần khởi chạy **API Gateway** và các service nghiệp vụ khác (vd: `auth-service`). Đảm bảo IDE của bạn đã được map với các biến môi trường từ file `.env` phía trên.
+**3. Khởi chạy Backend Microservices (POC)**
 
-**4. Khởi chạy Frontend**
+Chi tiết hướng dẫn khởi chạy từng service xem tại [services/README.md](services/README.md). Tóm tắt các lệnh chạy local trên Terminal (PowerShell):
+
+- **Auth Service (Port 8081):**
+  ```powershell
+  cd services/auth-service
+  $env:DB_URL="jdbc:postgresql://ep-withered-water-azrelm0x-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+  $env:DB_USERNAME="neondb_owner"
+  $env:DB_PASSWORD="npg_fmZOuPX8xh5J"
+  java -jar target/auth-service-0.0.1-SNAPSHOT.jar
+  ```
+
+- **Story Service (Port 8082):**
+  ```powershell
+  cd services/story-service
+  $env:DB_URL="jdbc:postgresql://ep-empty-dew-azuxyot6-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+  $env:DB_USERNAME="neondb_owner"
+  $env:DB_PASSWORD="npg_DPmt3eNdzL9i"
+  java -jar target/story-service-0.0.1-SNAPSHOT.jar
+  ```
+
+- **Sync Service (Port 8083):**
+  ```powershell
+  cd services/sync-service
+  $env:DB_URL="jdbc:postgresql://ep-super-snow-az7yq1ge-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+  $env:DB_USERNAME="neondb_owner"
+  $env:DB_PASSWORD="npg_fqRyD54ACZxO"
+  java -jar target/sync-service-0.0.1-SNAPSHOT.jar
+  ```
+
+**4. Khởi chạy Frontend (Web Reader)**
 ```bash
-cd ../../apps/web-reader
+cd apps/web-reader
 npm install
 npm run dev
 ```
+Giao diện Web đọc truyện sẽ khởi chạy tại: `http://localhost:5173`
+
 
 ---
 
