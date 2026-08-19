@@ -1,0 +1,30 @@
+{
+  "name": "comicverse",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm dev:all",
+    "dev:all": "concurrently -n \"READER,ADMIN\" -c \"cyan,magenta\" \"pnpm --dir apps/web-reader dev\" \"pnpm --dir apps/web-admin dev\"",
+    "dev:reader": "pnpm --dir apps/web-reader dev",
+    "dev:admin": "pnpm --dir apps/web-admin dev",
+    "build": "pnpm build:reader && pnpm build:admin",
+    "build:reader": "pnpm --dir apps/web-reader build",
+    "build:admin": "pnpm --dir apps/web-admin build",
+    "lint": "pnpm lint:reader && pnpm lint:admin",
+    "lint:reader": "pnpm --dir apps/web-reader lint",
+    "lint:admin": "pnpm --dir apps/web-admin lint",
+    "typecheck": "pnpm typecheck:reader && pnpm typecheck:admin",
+    "typecheck:reader": "pnpm --dir apps/web-reader typecheck",
+    "typecheck:admin": "pnpm --dir apps/web-admin typecheck",
+    "test": "pnpm test:reader && pnpm test:admin",
+    "test:reader": "pnpm --dir apps/web-reader test",
+    "test:admin": "pnpm --dir apps/web-admin test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

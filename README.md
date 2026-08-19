@@ -1,140 +1,98 @@
-# ComicVerse (Smart Read)
+# ComicVerse / Smart Read Platform
 
-> **A modern, scalable comic reading platform with a robust distributed backend, delivering a seamless experience for manga and webtoon lovers.**
+A multi-platform Manga / Webtoon / Light Novel digital reading system built on enterprise microservices architecture and Clean Architecture frontend applications.
 
-[![Java Support](https://img.shields.io/badge/Java-17-orange.svg)](https://java.com/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![React Native](https://img.shields.io/badge/React_Native-Cross_Platform-0ea5e9.svg)](https://reactnative.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
-
-ComicVerse là nền tảng đọc truyện (Comic, Manga, Light Novel) đa nền tảng được thiết kế với kiến trúc **Microservices** tiên tiến, đáp ứng khả năng mở rộng cực cao (High Availability & Scalability) và cá nhân hóa trải nghiệm người dùng.
+> **AI Coding Agents:** Start by reading [AI_CONTEXT.md](file:///c:/workSpace/KITS/ComicVerse/AI_CONTEXT.md) before making code changes.
 
 ---
 
-## Kiến trúc Kho lưu trữ (Monorepo Architecture)
+## 💻 Frontend Applications
 
-Dự án này sử dụng mô hình **Monorepo** để quản lý toàn bộ hệ thống từ Backend, Frontend, cho đến Cấu hình Hạ tầng Cloud.
+ComicVerse Web bao gồm các ứng dụng web độc lập (Standalone Vite + React + TypeScript apps), mỗi ứng dụng tự quản lý dependencies và chứa thư viện riêng biệt (`src/lib/`):
 
 ```text
-smart-read-platform/
-├── apps/                 # Frontend & Mobile Apps
-│   ├── web-admin/        # CMS quản trị nội dung (React.js)
-│   ├── web-reader/       # Cổng đọc truyện trên Web (React.js)
-│   └── mobile-app/       # Ứng dụng đọc truyện trên ĐTDĐ (React Native / Flutter)
+apps/
+├── web-reader/          # Reader Web Application (Vite + React + TS, Port 5173)
+│   ├── src/lib/         # Embedded libraries: ui, api-client, types, utils, config, testing
+│   ├── package.json     # Independent dependencies & build config
+│   └── vite.config.ts   # Standalone Vite configuration with @lib/* alias
 │
-├── services/             # Backend Microservices (Spring Boot 3)
-│   ├── api-gateway/      # Spring Cloud Gateway định tuyến tập trung
-│   ├── auth-service/     # Quản lý xác thực (JWT & Firebase Auth)
-│   ├── story-service/    # Quản lý truyện và nội dung chapter
-│   ├── payment-service/  # Ví điện tử & Tích hợp thanh toán
-│   ├── sync-service/     # Đồng bộ tiến độ đọc truyện Real-time
-│   └── recommendation/   # Gợi ý truyện thông minh
-│
-├── infrastructure/       # Infrastructure & DevOps
-│   ├── dev/              # Cấu hình Local Development (Docker Compose, Redis, DB)
-│   └── prod/             # Cấu hình Production (Terraform, AWS EKS, Helm Charts)
-│
-├── docs/                 # Tài liệu dự án (SRS, API Specs, Quy chuẩn)
-└── .github/workflows/    # CI/CD Pipelines
+└── web-admin/           # Admin Portal Application (Vite + React + TS, Port 3001)
+    ├── src/lib/         # Embedded libraries: ui, api-client, types, utils, config, testing
+    ├── package.json     # Independent dependencies & build config
+    └── vite.config.ts   # Standalone Vite configuration with @lib/* alias
+```
+
+### ⚡ Quickstart Frontend Commands
+
+```bash
+# 1. Cài đặt dependencies (tại root hoặc trong từng app)
+pnpm install
+
+# 2. Khởi chạy TẤT CẢ Web Apps cùng lúc (Reader + Admin)
+pnpm dev
+# hoặc
+pnpm dev:all
+
+# 3. Khởi chạy riêng từng Web App
+pnpm dev:reader   # Web Reader trên http://localhost:5173
+pnpm dev:admin    # Web Admin trên http://localhost:3001
+
+# 4. Kiểm tra chất lượng code & build
+pnpm lint         # Chạy ESLint cho cả 2 apps
+pnpm typecheck    # Kiểm tra TypeScript typecheck cho cả 2 apps
+pnpm test         # Chạy Vitest unit tests cho cả 2 apps
+pnpm build        # Build production bundles cho Reader & Admin
 ```
 
 ---
 
-## Công nghệ Sử dụng (Tech Stack)
+## 🚀 Backend Quickstart Guide
 
-### Backend & Core Services
-- **Framework:** Java 17, Spring Boot 3.x, Spring Cloud
-- **Database:** PostgreSQL (Neon Serverless), Redis (Caching)
-- **Realtime & Storage:** Firebase Firestore, FCM, Firebase Storage, AWS S3
-- **Message Broker:** RabbitMQ / Apache Kafka
-
-### Frontend & Mobile
-- **Web App:** React.js, TypeScript, TailwindCSS, Vite
-- **Mobile App:** React Native / Flutter (có hỗ trợ Offline Storage với SQLite/WatermelonDB)
-
-### DevOps & Infrastructure
-- **Containerization:** Docker, Docker Compose
-- **Orchestration:** Kubernetes (K3s/EKS), Helm
-- **IaC & CI/CD:** Terraform, GitHub Actions
-
----
-
-## Khởi chạy Môi trường Local (Getting Started)
-
-Dự án sử dụng mô hình **Hybrid Local/Cloud** cho môi trường phát triển: PostgreSQL được host trên Cloud (Neon Serverless) để giảm tải cho máy cá nhân, trong khi các Middleware (Redis, RabbitMQ, Eureka) chạy qua Docker Compose.
-
-### Yêu cầu hệ thống:
-* Docker & Docker Compose
-* Java 17 (JDK)
-* Node.js (>= 18)
-* Tài khoản Neon Serverless (hoặc Cloud PostgreSQL tương đương)
-
-### Các bước khởi chạy:
-
-**1. Cấu hình biến môi trường**
-Copy file mẫu để tạo file biến môi trường cục bộ:
 ```bash
-cd infrastructure/dev
+# 1. Copy environment configuration and generate RSA JWT keys
 cp .env.example .env
+./scripts/generate-jwt-keys.sh
+
+# 2. Build shared contract module
+cd services/shared && mvn clean install -DskipTests && cd ../..
+
+# 3. Run unit tests across all microservices (Zero DB / external dependency)
+mvn test
+
+# 4. Start full local development infrastructure (1 Lệnh cho toàn bộ Backend)
+./scripts/dev-start.sh
+# Hoặc dùng Docker Compose trực tiếp:
+docker compose -f infrastructure/dev/docker-compose.yml up -d --build
+
+# 5. Verify health and smoke tests
+./scripts/health-check.sh
+./scripts/smoke-test.sh
 ```
-*Mở file `.env` và điền chuỗi kết nối Database Cloud của bạn vào các biến `SPRING_DATASOURCE_*`.*
-
-**2. Khởi động Hạ tầng Local (Middleware)**
-```bash
-docker-compose up -d
-```
-*(Lệnh này sẽ khởi động Redis, RabbitMQ và Eureka Service Registry)*
-- RabbitMQ Management UI: `http://localhost:15672`
-- Eureka Dashboard: `http://localhost:8761`
-
-**3. Khởi chạy Backend Microservices (POC)**
-
-Chi tiết hướng dẫn khởi chạy từng service xem tại [services/README.md](services/README.md). Tóm tắt các lệnh chạy local trên Terminal (PowerShell):
-
-- **Auth Service (Port 8081):**
-  ```powershell
-  cd services/auth-service
-  $env:DB_URL="jdbc:postgresql://ep-withered-water-azrelm0x-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
-  $env:DB_USERNAME="neondb_owner"
-  $env:DB_PASSWORD="npg_fmZOuPX8xh5J"
-  java -jar target/auth-service-0.0.1-SNAPSHOT.jar
-  ```
-
-- **Story Service (Port 8082):**
-  ```powershell
-  cd services/story-service
-  $env:DB_URL="jdbc:postgresql://ep-empty-dew-azuxyot6-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
-  $env:DB_USERNAME="neondb_owner"
-  $env:DB_PASSWORD="npg_DPmt3eNdzL9i"
-  java -jar target/story-service-0.0.1-SNAPSHOT.jar
-  ```
-
-- **Sync Service (Port 8083):**
-  ```powershell
-  cd services/sync-service
-  $env:DB_URL="jdbc:postgresql://ep-super-snow-az7yq1ge-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
-  $env:DB_USERNAME="neondb_owner"
-  $env:DB_PASSWORD="npg_fqRyD54ACZxO"
-  java -jar target/sync-service-0.0.1-SNAPSHOT.jar
-  ```
-
-**4. Khởi chạy Frontend (Web Reader)**
-```bash
-cd apps/web-reader
-npm install
-npm run dev
-```
-Giao diện Web đọc truyện sẽ khởi chạy tại: `http://localhost:5173`
-
 
 ---
 
-## Tài liệu Tham khảo
-Đội ngũ phát triển vui lòng đọc kỹ các tài liệu tiêu chuẩn trước khi viết code:
-- [Quy chuẩn Đặt tên (Naming Convention)](docs/naming-convention.md)
-- [Nguyên tắc Thiết kế SOLID](docs/solid-principles.md)
-- [Quy chuẩn Cấu trúc Microservice](services/README.md)
+## 🏛️ Microservice Architecture
+
+The platform comprises 11 microservices on a private Docker network (`comicverse-network`). Only Nginx (Port 80) and API Gateway (Port 8080) are public entrypoints.
+
+| Service Name | Port | Database | Primary Function |
+|---|---|---|---|
+| `api-gateway` | 8080 | Stateless | Edge Routing, RSA JWT, CORS, Request ID |
+| `auth-service` | 8081 | `auth_db` | Register, Login, RSA Signing, Refresh Token Rotation |
+| `story-service` | 8082 | `story_db` | Titles, Metadata, Chapter publishing |
+| `sync-service` | 8083 | `sync_db` | Multi-device progress synchronization |
+| `user-service` | 8084 | `user_db` | User profiles, reading lists, preferences |
+| `payment-service` | 8085 | `payment_db` | User wallets, coin transactions |
+| `recommendation-service` | 8086 | `recommendation_db` | Recommendations, story catalog local read model |
+| `chat-service` | 8087 | `chat_db` | Ably token authentication, chat rooms, messages |
+| `notification-service` | 8088 | `notification_db` | FCM device tokens, push notifications |
+| `search-service` | 8089 | `search_db` | PostgreSQL Full-Text Search tsvector engine |
+| `media-service` | 8090 | `media_db` | Media assets, Local / MinIO / S3 storage |
 
 ---
-*© 2026 ComicVerse. Designed for scalability and perfect reading experience.*
+
+## 📚 Documentation
+
+- [Full Technical & Architecture Documentation](file:///c:/workSpace/KITS/ComicVerse/docs/DOCUMENTATION.md)
+- [AI Context & Rules](file:///c:/workSpace/KITS/ComicVerse/AI_CONTEXT.md)

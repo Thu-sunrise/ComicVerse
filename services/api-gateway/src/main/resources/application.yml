@@ -1,0 +1,373 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # ============================================================
+  # Spring Cloud Gateway Routes
+  # ============================================================
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            deny-empty-key: false
+            key-resolver: "#{@clientAddressKeyResolver}"
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      routes:
+        # --------------------------------------------------
+        # Auth Service — Public routes (no JWT required)
+        # --------------------------------------------------
+        - id: auth-login
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: auth-health
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+          predicates:
+            - Path=/internal/auth/health
+          filters:
+            - RewritePath=/internal/auth/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Story Service
+        # --------------------------------------------------
+        - id: story-service
+          uri: ${STORY_SERVICE_URL:http://story-service:8082}
+          predicates:
+            - Path=/api/v1/stories/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: story-health
+          uri: ${STORY_SERVICE_URL:http://story-service:8082}
+          predicates:
+            - Path=/internal/story/health
+          filters:
+            - RewritePath=/internal/story/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Sync Service
+        # --------------------------------------------------
+        - id: sync-service
+          uri: ${SYNC_SERVICE_URL:http://sync-service:8083}
+          predicates:
+            - Path=/api/v1/reading-progress/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: sync-health
+          uri: ${SYNC_SERVICE_URL:http://sync-service:8083}
+          predicates:
+            - Path=/internal/sync/health
+          filters:
+            - RewritePath=/internal/sync/health, /api/v1/health
+
+        # --------------------------------------------------
+        # User Service
+        # --------------------------------------------------
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://user-service:8084}
+          predicates:
+            - Path=/api/v1/profiles/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: user-health
+          uri: ${USER_SERVICE_URL:http://user-service:8084}
+          predicates:
+            - Path=/internal/user/health
+          filters:
+            - RewritePath=/internal/user/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Payment Service
+        # --------------------------------------------------
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URL:http://payment-service:8085}
+          predicates:
+            - Path=/api/v1/payments/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: payment-health
+          uri: ${PAYMENT_SERVICE_URL:http://payment-service:8085}
+          predicates:
+            - Path=/internal/payment/health
+          filters:
+            - RewritePath=/internal/payment/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Recommendation Service
+        # --------------------------------------------------
+        - id: recommendation-service
+          uri: ${RECOMMENDATION_SERVICE_URL:http://recommendation-service:8086}
+          predicates:
+            - Path=/api/v1/recommendations/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: recommendation-health
+          uri: ${RECOMMENDATION_SERVICE_URL:http://recommendation-service:8086}
+          predicates:
+            - Path=/internal/recommendation/health
+          filters:
+            - RewritePath=/internal/recommendation/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Chat Service + Realtime Token
+        # --------------------------------------------------
+        - id: chat-service
+          uri: ${CHAT_SERVICE_URL:http://chat-service:8087}
+          predicates:
+            - Path=/api/v1/chat/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: realtime-token
+          uri: ${CHAT_SERVICE_URL:http://chat-service:8087}
+          predicates:
+            - Path=/api/v1/realtime/token
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: chat-health
+          uri: ${CHAT_SERVICE_URL:http://chat-service:8087}
+          predicates:
+            - Path=/internal/chat/health
+          filters:
+            - RewritePath=/internal/chat/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Notification Service
+        # --------------------------------------------------
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: notification-health
+          uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
+          predicates:
+            - Path=/internal/notification/health
+          filters:
+            - RewritePath=/internal/notification/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Search Service
+        # --------------------------------------------------
+        - id: search-service
+          uri: ${SEARCH_SERVICE_URL:http://search-service:8089}
+          predicates:
+            - Path=/api/v1/search/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: search-health
+          uri: ${SEARCH_SERVICE_URL:http://search-service:8089}
+          predicates:
+            - Path=/internal/search/health
+          filters:
+            - RewritePath=/internal/search/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Media Service
+        # --------------------------------------------------
+        - id: media-service
+          uri: ${MEDIA_SERVICE_URL:http://media-service:8090}
+          predicates:
+            - Path=/api/v1/media/**
+          filters:
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Secret
+                value: ${GATEWAY_SECRET:dev-gateway-secret}
+
+        - id: media-health
+          uri: ${MEDIA_SERVICE_URL:http://media-service:8090}
+          predicates:
+            - Path=/internal/media/health
+          filters:
+            - RewritePath=/internal/media/health, /api/v1/health
+
+        # --------------------------------------------------
+        # Swagger OpenAPI Docs Routes for Downstream Services
+        # --------------------------------------------------
+        - id: auth-v3-api-docs
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+          predicates:
+            - Path=/api/v1/auth/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/auth/v3/api-docs, /v3/api-docs
+
+        - id: story-v3-api-docs
+          uri: ${STORY_SERVICE_URL:http://story-service:8082}
+          predicates:
+            - Path=/api/v1/stories/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/stories/v3/api-docs, /v3/api-docs
+
+        - id: sync-v3-api-docs
+          uri: ${SYNC_SERVICE_URL:http://sync-service:8083}
+          predicates:
+            - Path=/api/v1/reading-progress/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/reading-progress/v3/api-docs, /v3/api-docs
+
+        - id: user-v3-api-docs
+          uri: ${USER_SERVICE_URL:http://user-service:8084}
+          predicates:
+            - Path=/api/v1/profiles/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/profiles/v3/api-docs, /v3/api-docs
+
+        - id: payment-v3-api-docs
+          uri: ${PAYMENT_SERVICE_URL:http://payment-service:8085}
+          predicates:
+            - Path=/api/v1/payments/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/payments/v3/api-docs, /v3/api-docs
+
+        - id: recommendation-v3-api-docs
+          uri: ${RECOMMENDATION_SERVICE_URL:http://recommendation-service:8086}
+          predicates:
+            - Path=/api/v1/recommendations/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/recommendations/v3/api-docs, /v3/api-docs
+
+        - id: chat-v3-api-docs
+          uri: ${CHAT_SERVICE_URL:http://chat-service:8087}
+          predicates:
+            - Path=/api/v1/chat/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/chat/v3/api-docs, /v3/api-docs
+
+        - id: notification-v3-api-docs
+          uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
+          predicates:
+            - Path=/api/v1/notifications/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/notifications/v3/api-docs, /v3/api-docs
+
+        - id: search-v3-api-docs
+          uri: ${SEARCH_SERVICE_URL:http://search-service:8089}
+          predicates:
+            - Path=/api/v1/search/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/search/v3/api-docs, /v3/api-docs
+
+        - id: media-v3-api-docs
+          uri: ${MEDIA_SERVICE_URL:http://media-service:8090}
+          predicates:
+            - Path=/api/v1/media/v3/api-docs
+          filters:
+            - RewritePath=/api/v1/media/v3/api-docs, /v3/api-docs
+
+# ============================================================
+# Springdoc Swagger UI Aggregator
+# ============================================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: 01. Auth Service
+        url: /api/v1/auth/v3/api-docs
+      - name: 02. Story Service
+        url: /api/v1/stories/v3/api-docs
+      - name: 03. Sync Service
+        url: /api/v1/reading-progress/v3/api-docs
+      - name: 04. User Service
+        url: /api/v1/profiles/v3/api-docs
+      - name: 05. Payment Service
+        url: /api/v1/payments/v3/api-docs
+      - name: 06. Recommendation Service
+        url: /api/v1/recommendations/v3/api-docs
+      - name: 07. Chat Service
+        url: /api/v1/chat/v3/api-docs
+      - name: 08. Notification Service
+        url: /api/v1/notifications/v3/api-docs
+      - name: 09. Search Service
+        url: /api/v1/search/v3/api-docs
+      - name: 10. Media Service
+        url: /api/v1/media/v3/api-docs
+
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:jwt-public.pem}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+gateway:
+  secret: ${GATEWAY_SECRET:dev-gateway-secret}
+
+jwt:
+  issuer: ${JWT_ISSUER:comicverse-auth}
+  public-key-base64: ${JWT_PUBLIC_KEY_BASE64:}
+
+logging:
+  level:
+    root: INFO
+    com.comicverse: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{correlationId}] %-5level %logger{36} - %msg%n"

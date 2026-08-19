@@ -1,21 +1,463 @@
-# Environment files with credentials
+# ============================================================
+# ComicVerse .gitignore
+# Enterprise Full-Stack: Java Microservices + React Monorepo
+# ============================================================
+
+# =====================================================
+# 🔐 SECRETS & CREDENTIALS (CRITICAL - NEVER COMMIT!)
+# =====================================================
 .env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+**/.env
+!**/.env.example
+!**/.env.staging.example
+!**/.env.production.example
 
-# Maven build output
-apps/web-reader/target/
+# ----- JWT / SSL / Secret Keys -----
+*.pem
+*.key
+*.p12
+*.jks
+*.pfx
+*.cer
+*.crt
+jwt_private*
+jwt_public*
+private_key*
+public_key*
 
-# IDE
-.idea/
-*.iml
-.vscode/
+# ----- Cloud & Authentication Credentials -----
+firebase-service-account*.json
+firebase-debug.log
+fcm-credentials*.json
+google-services*.json
+.firebaserc
+.firebase/
+aws-credentials*
+gcp-credentials*
+azure-credentials*
+kubeconfig*
+.kube/
 
-# OS
-.DS_Store
-Thumbs.db
+# ----- API Keys & Tokens -----
+.secrets/
+secrets/
+private/
+credentials/
+**/credentials.json
 
-# node_modules
-node_modules/
+# =====================================================
+# 📦 BACKEND - JAVA / MAVEN / SPRING BOOT
+# =====================================================
+
+# ----- Maven Build Output -----
+**/target/
+**/build/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/
+.m2/
+
+# ----- Gradle (if used) -----
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+build/
 dist/
 
-# services
-services/**/target/
+# ----- Java IDE -----
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.classpath
+.project
+.settings/
+.factorypath
+
+# ----- Spring Boot -----
+.spring/
+.springBeans
+*.jfr
+hs_err_pid*
+
+# ----- Compiled Java -----
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# =====================================================
+# 💻 FRONTEND - NODE / PNPM / REACT / VITE
+# =====================================================
+
+# ----- Node Modules -----
+**/node_modules/
+**/node_modules/.bin/
+
+# ----- pnpm -----
+pnpm-lock.yaml
+.pnpm/
+.pnpm-store/
+.pnpm-debug.log
+
+# ----- npm -----
+package-lock.json
+npm-debug.log*
+npm-error.log*
+.npm
+
+# ----- Yarn -----
+yarn.lock
+yarn-error.log*
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ----- Frontend Build Output -----
+**/dist/
+**/build/
+**/.next/
+**/.nuxt/
+**/.vitepress/dist
+**/out/
+.cache/
+
+# ----- Vite -----
+.vite/
+.turbo/
+turbo.json.local
+
+# ----- React / Next.js -----
+.eslintcache
+.next/
+out/
+
+# ----- Vitest / Testing -----
+coverage/
+.nyc_output/
+**/.nyc_output/
+test-results/
+junit.xml
+*.trx
+vitest.config.local.ts
+
+# =====================================================
+# 🐳 DOCKER & KUBERNETES & INFRASTRUCTURE
+# =====================================================
+
+# ----- Docker -----
+*.override.yml
+docker-compose.override.yml
+.docker/
+compose.override.yml
+Dockerfile.local
+Dockerfile.dev
+
+# ----- Docker Volumes & Data -----
+postgres_data/
+mysql_data/
+mongodb_data/
+redis_data/
+rabbitmq_data/
+elasticsearch_data/
+minio_data/
+docker_volumes/
+db_data/
+volumes/
+
+# ----- Kubernetes / Helm -----
+.kube/
+kubeconfig
+kubeconfig-*
+*.kubeconfig
+
+# ----- Terraform -----
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+crash.log
+crash.*.log
+.terraformrc
+terraform.rc
+
+# ----- Helm -----
+.helm/
+helm.lock.json
+values.local.yaml
+values.*.local.yaml
+
+# =====================================================
+# 📝 IDE & EDITOR
+# =====================================================
+
+# ----- VS Code -----
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.code-workspace
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# ----- IntelliJ / WebStorm / Android Studio -----
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.DS_Store/
+.gradle/
+
+# ----- Sublime Text -----
+.sublime-project
+.sublime-workspace
+
+# ----- Vim / Nano -----
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# ----- Emacs -----
+*~
+\#*\#
+.\#*
+
+# ----- Others -----
+*.vscode
+.vscode-test
+.history/
+
+# =====================================================
+# 📋 LOGS & TEMPORARY FILES
+# =====================================================
+
+# ----- Application Logs -----
+logs/
+log/
+*.log
+*.log.*
+lerna-debug.log*
+yarn-debug.log*
+yarn-error.log*
+npm-debug.log*
+
+# ----- Java Logs -----
+*.log
+catalina.out
+
+# ----- Spring Boot -----
+spring-shell-history
+
+# ----- Temporary Files -----
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+~*
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ----- OS Files -----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Desktop.ini
+
+# =====================================================
+# 🧪 TEST & COVERAGE
+# =====================================================
+
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.nyc_output/
+**/.nyc_output/
+*.lcov
+*.profdata
+test-results/
+xunit.xml
+junit.xml
+coverage-summary.json
+
+# =====================================================
+# 🔧 BUILD & DISTRIBUTION
+# =====================================================
+
+# ----- Distribution Packages -----
+dist/
+dist-*/
+build/
+build-*/
+release/
+releases/
+*.tgz
+*.tar.gz
+*.zip
+*.7z
+*.rar
+*.exe
+*.dmg
+*.pkg
+*.iso
+
+# ----- Generated Files -----
+.generated/
+generated/
+gen/
+
+# =====================================================
+# 🐍 PYTHON (if used in scripts)
+# =====================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =====================================================
+# 🔄 CI/CD & AUTOMATION
+# =====================================================
+
+# ----- GitHub Actions -----
+.github/workflows/*.local.yml
+
+# ----- CI Logs -----
+ci-output.log
+build.log
+deploy.log
+
+# =====================================================
+# 📊 CACHE & COMPILED
+# =====================================================
+
+.cache/
+cache/
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.turbo/
+.vercel/
+.next/
+.nuxt/
+dist/
+out/
+build/
+
+# =====================================================
+# 🎯 PROJECT-SPECIFIC (ComicVerse)
+# =====================================================
+
+# ----- Maven Local Repository Cache -----
+scratch/
+scratch/temp-m2/
+.m2/
+
+# ----- Development Environment -----
+.dev.env
+.local.env
+
+# ----- Database Migrations -----
+.migrations/
+migrations.log
+
+# ----- Media & Assets (Large files) -----
+media_uploads/
+media_cache/
+uploads/
+tmp_uploads/
+
+# ----- JWT Keys -----
+jwt-keys/
+certificates/
+
+# ----- Docker Compose Local -----
+docker-compose.local.yml
+docker-compose.dev.yml
+
+# ----- Build Artifacts -----
+services/*/target/
+apps/*/dist/
+packages/*/dist/
+
+# ----- IDE workspace settings -----
+*.code-workspace.local
+.vscode-test/
+
+# =====================================================
+# 📝 DOCUMENTATION (Optional - Keep tracked if needed)
+# =====================================================
+# Uncomment below if you want to ignore generated docs
+# /docs/generated/
+# /docs/api/
+
+# =====================================================
+# ✅ EXCEPTIONS - Whitelisted Files
+# =====================================================
+
+# Keep these even if matching patterns above
+!.gitkeep
+!.env.example
+!.env.staging.example
+!.env.production.example
+!.mvn/wrapper/maven-wrapper.jar
+!.vscode/extensions.json.example
+!.github/workflows/
+!docs/
+!scripts/
+!.editorconfig
+!.prettierignore
+!.eslintignore

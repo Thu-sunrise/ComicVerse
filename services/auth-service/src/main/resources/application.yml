@@ -4,18 +4,91 @@ server:
 spring:
   application:
     name: auth-service
+
+  # ============================================================
+  # Database — Auth DB (Neon PostgreSQL)
+  # ============================================================
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/kits_user}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${AUTH_DATABASE_URL:jdbc:postgresql://localhost:5432/auth_db}
+    username: ${AUTH_DATABASE_USERNAME:postgres}
+    password: ${AUTH_DATABASE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+  # ============================================================
+  # Flyway — Auth DB Migrations
+  # ============================================================
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # ============================================================
+  # RabbitMQ
+  # ============================================================
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          multiplier: 2.0
+
+# ============================================================
+# JWT Configuration
+# ============================================================
+jwt:
+  # RSA private key — base64 encoded PEM (NEVER commit real values)
+  private-key-base64: ${JWT_PRIVATE_KEY_BASE64:}
+  # RSA public key — base64 encoded PEM
+  public-key-base64: ${JWT_PUBLIC_KEY_BASE64:}
+  issuer: ${JWT_ISSUER:comicverse-auth}
+  access-token-expiry-seconds: ${JWT_ACCESS_TOKEN_EXPIRY_SECONDS:900}
+  refresh-token-expiry-seconds: ${JWT_REFRESH_TOKEN_EXPIRY_SECONDS:2592000}
+
+# ============================================================
+# Gateway Secret — Validate that requests come through Gateway
+# ============================================================
+gateway:
+  secret: ${GATEWAY_SECRET:dev-gateway-secret}
+
+# ============================================================
+# Actuator
+# ============================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+# ============================================================
+# Logging — NEVER log passwords, tokens, or secrets
+# ============================================================
+logging:
+  level:
+    root: INFO
+    com.comicverse: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{correlationId}] %-5level %logger{36} - %msg%n"

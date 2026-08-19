@@ -30,7 +30,7 @@ Mỗi microservice (Spring Boot) bên trong thư mục này tuân thủ cấu tr
 
 ---
 
-## 🚀 Hướng Dẫn Khởi Chạy 3 Microservices (POC)
+## 🚀 Hướng Dẫn Khởi Chạy 3 Microservices
 
 ### 1. Bảng Thông Tin Danh Sách Microservices
 
