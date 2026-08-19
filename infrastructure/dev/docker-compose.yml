@@ -1,50 +1,477 @@
-version: '3.8'
+
+# ============================================================
+# ComicVerse — Full Stack Docker Compose (DEV)
+#
+# Network topology:
+#   Internet → Nginx (port 80) → api-gateway → services
+#
+# Only Nginx exposes a public port.
+# All microservices communicate via private internal network.
+# RabbitMQ management UI exposed on 15672 for DEV debugging.
+# Redis exposed on 6379 for DEV debugging.
+# MinIO console exposed on 9001 for DEV debugging.
+#
+# Prerequisites:
+#   1. Copy .env.example → .env and fill in all values
+#   2. Run ./scripts/generate-jwt-keys.sh to generate RSA keys
+#   3. Create 10 Neon databases and fill *_DATABASE_URL values
+#   4. Run ./scripts/migrate-all.sh
+#   5. docker compose -f infrastructure/dev/docker-compose.yml up -d
+# ============================================================
 
 services:
+
+  # ============================================================
+  # NGINX — Public Reverse Proxy
+  # Only service exposed to the host machine (port 80)
+  # ============================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: comicverse-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ../../infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+
+  # ============================================================
+  # API GATEWAY
+  # ============================================================
+  api-gateway:
+    build:
+      context: ../../
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: comicverse-api-gateway
+    environment:
+      - GATEWAY_PORT=8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - JWT_PUBLIC_KEY_BASE64=${JWT_PUBLIC_KEY_BASE64}
+      - JWT_ISSUER=${JWT_ISSUER:-comicverse-auth}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - STORY_SERVICE_URL=http://story-service:8082
+      - SYNC_SERVICE_URL=http://sync-service:8083
+      - USER_SERVICE_URL=http://user-service:8084
+      - PAYMENT_SERVICE_URL=http://payment-service:8085
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8086
+      - CHAT_SERVICE_URL=http://chat-service:8087
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8088
+      - SEARCH_SERVICE_URL=http://search-service:8089
+      - MEDIA_SERVICE_URL=http://media-service:8090
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # AUTH SERVICE
+  # ============================================================
+  auth-service:
+    build:
+      context: ../../
+      dockerfile: services/auth-service/Dockerfile
+    container_name: comicverse-auth
+    environment:
+      - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
+      - AUTH_DATABASE_USERNAME=${AUTH_DATABASE_USERNAME}
+      - AUTH_DATABASE_PASSWORD=${AUTH_DATABASE_PASSWORD}
+      - JWT_PRIVATE_KEY_BASE64=${JWT_PRIVATE_KEY_BASE64}
+      - JWT_PUBLIC_KEY_BASE64=${JWT_PUBLIC_KEY_BASE64}
+      - JWT_ISSUER=${JWT_ISSUER:-comicverse-auth}
+      - JWT_ACCESS_TOKEN_EXPIRY_SECONDS=${JWT_ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      - JWT_REFRESH_TOKEN_EXPIRY_SECONDS=${JWT_REFRESH_TOKEN_EXPIRY_SECONDS:-2592000}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # STORY SERVICE
+  # ============================================================
+  story-service:
+    build:
+      context: ../../
+      dockerfile: services/story-service/Dockerfile
+    container_name: comicverse-story
+    environment:
+      - STORY_DATABASE_URL=${STORY_DATABASE_URL}
+      - STORY_DATABASE_USERNAME=${STORY_DATABASE_USERNAME}
+      - STORY_DATABASE_PASSWORD=${STORY_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # SYNC SERVICE
+  # ============================================================
+  sync-service:
+    build:
+      context: ../../
+      dockerfile: services/sync-service/Dockerfile
+    container_name: comicverse-sync
+    environment:
+      - SYNC_DATABASE_URL=${SYNC_DATABASE_URL}
+      - SYNC_DATABASE_USERNAME=${SYNC_DATABASE_USERNAME}
+      - SYNC_DATABASE_PASSWORD=${SYNC_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # USER SERVICE
+  # ============================================================
+  user-service:
+    build:
+      context: ../../
+      dockerfile: services/user-service/Dockerfile
+    container_name: comicverse-user
+    environment:
+      - USER_DATABASE_URL=${USER_DATABASE_URL}
+      - USER_DATABASE_USERNAME=${USER_DATABASE_USERNAME}
+      - USER_DATABASE_PASSWORD=${USER_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # PAYMENT SERVICE
+  # ============================================================
+  payment-service:
+    build:
+      context: ../../
+      dockerfile: services/payment-service/Dockerfile
+    container_name: comicverse-payment
+    environment:
+      - PAYMENT_DATABASE_URL=${PAYMENT_DATABASE_URL}
+      - PAYMENT_DATABASE_USERNAME=${PAYMENT_DATABASE_USERNAME}
+      - PAYMENT_DATABASE_PASSWORD=${PAYMENT_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # RECOMMENDATION SERVICE
+  # ============================================================
+  recommendation-service:
+    build:
+      context: ../../
+      dockerfile: services/recommendation-service/Dockerfile
+    container_name: comicverse-recommendation
+    environment:
+      - RECOMMENDATION_DATABASE_URL=${RECOMMENDATION_DATABASE_URL}
+      - RECOMMENDATION_DATABASE_USERNAME=${RECOMMENDATION_DATABASE_USERNAME}
+      - RECOMMENDATION_DATABASE_PASSWORD=${RECOMMENDATION_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # CHAT SERVICE (Ably Realtime)
+  # ============================================================
+  chat-service:
+    build:
+      context: ../../
+      dockerfile: services/chat-service/Dockerfile
+    container_name: comicverse-chat
+    environment:
+      - CHAT_DATABASE_URL=${CHAT_DATABASE_URL}
+      - CHAT_DATABASE_USERNAME=${CHAT_DATABASE_USERNAME}
+      - CHAT_DATABASE_PASSWORD=${CHAT_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - ABLY_API_KEY=${ABLY_API_KEY}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8087/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # NOTIFICATION SERVICE (FCM)
+  # ============================================================
+  notification-service:
+    build:
+      context: ../../
+      dockerfile: services/notification-service/Dockerfile
+    container_name: comicverse-notification
+    environment:
+      - NOTIFICATION_DATABASE_URL=${NOTIFICATION_DATABASE_URL}
+      - NOTIFICATION_DATABASE_USERNAME=${NOTIFICATION_DATABASE_USERNAME}
+      - NOTIFICATION_DATABASE_PASSWORD=${NOTIFICATION_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - FCM_SERVICE_ACCOUNT_JSON_BASE64=${FCM_SERVICE_ACCOUNT_JSON_BASE64:-}
+      - FCM_PROJECT_ID=${FCM_PROJECT_ID:-comicverse-app}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8088/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # SEARCH SERVICE
+  # ============================================================
+  search-service:
+    build:
+      context: ../../
+      dockerfile: services/search-service/Dockerfile
+    container_name: comicverse-search
+    environment:
+      - SEARCH_DATABASE_URL=${SEARCH_DATABASE_URL}
+      - SEARCH_DATABASE_USERNAME=${SEARCH_DATABASE_USERNAME}
+      - SEARCH_DATABASE_PASSWORD=${SEARCH_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-comicverse}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8089/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # MEDIA SERVICE (Local / MinIO / S3 Storage)
+  # ============================================================
+  media-service:
+    build:
+      context: ../../
+      dockerfile: services/media-service/Dockerfile
+    container_name: comicverse-media
+    environment:
+      - MEDIA_DATABASE_URL=${MEDIA_DATABASE_URL}
+      - MEDIA_DATABASE_USERNAME=${MEDIA_DATABASE_USERNAME}
+      - MEDIA_DATABASE_PASSWORD=${MEDIA_DATABASE_PASSWORD}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - MEDIA_STORAGE_S3_ENDPOINT_URL=http://minio:9000
+      - MEDIA_STORAGE_S3_BUCKET_NAME=${MINIO_BUCKET_NAME:-comicverse-media}
+      - MEDIA_STORAGE_S3_ACCESS_KEY=${MINIO_ACCESS_KEY:-comicverse}
+      - MEDIA_STORAGE_S3_SECRET_KEY=${MINIO_SECRET_KEY:-change-me-minio-secret}
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ============================================================
+  # RABBITMQ — Message Broker
+  # ============================================================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: comicverse-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-comicverse}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../../infrastructure/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - comicverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 30s
+      timeout: 30s
+      start_period: 30s
+      retries: 5
+
+  # ============================================================
+  # REDIS — Distributed Cache & Rate Limiter (DEV)
+  # ============================================================
   redis:
     image: redis:7-alpine
     container_name: comicverse-redis
     ports:
-      - "6379:6379"
-    restart: unless-stopped
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     networks:
       - comicverse-network
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: comicverse-rabbitmq
-    ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # MINIO — S3-compatible Object Storage (DEV)
+  # ============================================================
+  minio:
+    image: minio/minio:latest
+    container_name: comicverse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-comicverse}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-change-me-minio-secret}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - minio_data:/data
     networks:
       - comicverse-network
-
-  eureka-server:
-    image: springcloud/eureka
-    container_name: comicverse-eureka
-    ports:
-      - "8761:8761"
     restart: unless-stopped
-    environment:
-      - spring.application.name=eureka-server
-      - server.port=8761
-      - eureka.client.register-with-eureka=false
-      - eureka.client.fetch-registry=false
-    networks:
-      - comicverse-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+# ============================================================
+# Volumes
+# ============================================================
 volumes:
-  redis_data:
   rabbitmq_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
 
+# ============================================================
+# Networks
+# ============================================================
 networks:
   comicverse-network:
     driver: bridge
+    name: comicverse-network
