@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #08080e;
+  --color-surface: #111118;
+  --color-surface2: #1a1a28;
+  --color-border: #252538;
+  --color-primary: #ff5c1a;
+  --color-primary-dark: #d94a12;
+  --color-accent: #ffd93d;
+  --color-text: #e8e8f2;
+  --color-muted: #6b6b98;
+  --color-success: #3dd68c;
+  --color-danger: #f4645f;
+  --font-display: 'Bangers', cursive;
+  --font-body: 'Nunito', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  background-color: #08080e;
+  color: #e8e8f2;
+  font-family: 'Nunito', sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #252538 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #252538;
+  border-radius: 3px;
+}

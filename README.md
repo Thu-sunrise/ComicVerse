@@ -53,6 +53,30 @@ smart-read-platform/
 - **Web App:** React.js, TypeScript, TailwindCSS, Vite
 - **Mobile App:** React Native / Flutter (có hỗ trợ Offline Storage với SQLite/WatermelonDB)
 
+### Hai website frontend
+Trong workspace hiện có hai website Vite độc lập:
+
+```text
+apps/
+├── reader-site/       # Thư viện đọc truyện và reader, port 8444
+├── admin-site/        # Dashboard quản trị nội dung, port 8445
+└── src/               # Shared pages, store, auth và styles
+```
+
+Chạy riêng từng website:
+
+```bash
+cd apps/reader-site && npm install && npm run dev
+cd apps/admin-site && npm install && npm run dev
+```
+
+Hoặc build từ thư mục `apps`:
+
+```bash
+npm run build:reader
+npm run build:admin
+```
+
 ### DevOps & Infrastructure
 - **Containerization:** Docker, Docker Compose
 - **Orchestration:** Kubernetes (K3s/EKS), Helm

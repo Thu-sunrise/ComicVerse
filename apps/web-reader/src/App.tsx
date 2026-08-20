@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react"
 import { User, getCurrentUser, initStore } from "./store"
 import AuthPage from "./pages/AuthPage"
-import AdminPage from "./pages/AdminPage"
+// import AdminPage from "./pages/AdminPage"
 import UserPage from "./pages/UserPage"
 import ReaderPage from "./pages/ReaderPage"
-import ProfilePage from "./pages/ProfilePage"
 
-type View = "auth" | "home" | "admin" | "reader" | "profile"
+type View = "auth" | "home" | "admin" | "reader"
 
 interface ReaderCtx {
   comicId: string
@@ -23,24 +22,19 @@ export default function App() {
     const u = getCurrentUser()
     if (u) {
       setUser(u)
-      setView(u.role === "admin" ? "admin" : "home")
+      setView("home")
     }
   }, [])
 
   function handleAuth(u: User) {
     setUser(u)
-    setView(u.role === "admin" ? "admin" : "home")
+    setView("home")
   }
 
   function handleLogout() {
     setUser(null)
     setView("auth")
     setReaderCtx(null)
-  }
-
-  function handleProfileUpdated(updated: User) {
-    setUser(updated)
-    setView(updated.role === "admin" ? "admin" : "home")
   }
 
   function handleRead(comicId: string, chapterId: string) {
@@ -52,9 +46,9 @@ export default function App() {
     return <AuthPage onAuth={handleAuth} />
   }
 
-  if (view === "admin" && user.role === "admin") {
-    return <AdminPage user={user} onLogout={handleLogout} onProfile={() => setView("profile")} />
-  }
+  // if (view === "admin" && user.role === "admin") {
+  //   return <AdminPage user={user} onLogout={handleLogout} />
+  // }
 
   if (view === "reader" && readerCtx) {
     return (
@@ -67,9 +61,5 @@ export default function App() {
     )
   }
 
-  if (view === "profile") {
-    return <ProfilePage user={user} onUpdated={handleProfileUpdated} onBack={() => setView(user.role === "admin" ? "admin" : "home")} />
-  }
-
-  return <UserPage user={user} onLogout={handleLogout} onRead={handleRead} onProfile={() => setView("profile")} />
+  return <UserPage user={user} onLogout={handleLogout} onRead={handleRead} />
 }

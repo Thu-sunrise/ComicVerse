@@ -7,7 +7,6 @@ import {
 interface Props {
   user: User
   onLogout: () => void
-  onProfile: () => void
 }
 
 type Tab = "comics" | "stats"
@@ -20,7 +19,7 @@ const DEFAULT_PAGES = [
 
 const BLANK_FORM = { title: "", author: "", description: "", genre: "", cover: "" }
 
-export default function AdminPage({ user, onLogout, onProfile }: Props) {
+export default function AdminPage({ user, onLogout }: Props) {
   const [tab, setTab] = useState<Tab>("comics")
   const [comics, setComics] = useState<Comic[]>([])
   const [interactions, setInteractions] = useState<Record<string, Interactions>>({})
@@ -84,7 +83,7 @@ export default function AdminPage({ user, onLogout, onProfile }: Props) {
       <header className="bg-surface border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <h1 className="font-display text-3xl tracking-widest text-primary" style={{ letterSpacing: "0.12em" }}>
-            COMICVERSE
+            COMICVERSER
           </h1>
           <span className="bg-accent text-bg text-xs font-mono font-bold px-2 py-0.5 rounded-md">
             ADMIN
@@ -92,7 +91,6 @@ export default function AdminPage({ user, onLogout, onProfile }: Props) {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-muted text-sm font-mono">@{user.username}</span>
-          <button onClick={onProfile} className="text-sm text-muted hover:text-primary transition-colors">Profile</button>
           <button
             onClick={() => { logout(); onLogout() }}
             className="text-sm text-muted hover:text-danger transition-colors"

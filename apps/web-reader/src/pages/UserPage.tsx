@@ -8,10 +8,9 @@ interface Props {
   user: User
   onLogout: () => void
   onRead: (comicId: string, chapterId: string) => void
-  onProfile: () => void
 }
 
-export default function UserPage({ user, onLogout, onRead, onProfile }: Props) {
+export default function UserPage({ user, onLogout, onRead }: Props) {
   const [comics, setComics] = useState<Comic[]>([])
   const [interactions, setInteractions] = useState<Record<string, Interactions>>({})
   const [progresses, setProgresses] = useState<Record<string, ReadingProgress | null>>({})
@@ -55,11 +54,10 @@ export default function UserPage({ user, onLogout, onRead, onProfile }: Props) {
           className="font-display text-3xl text-primary"
           style={{ letterSpacing: "0.12em" }}
         >
-          COMICVERSE
+          COMICVERSER
         </h1>
         <div className="flex items-center gap-4">
           <span className="text-muted text-sm font-mono hidden sm:block">@{user.username}</span>
-          <button onClick={onProfile} className="text-sm text-muted hover:text-primary transition-colors">Profile</button>
           <button
             onClick={() => { logout(); onLogout() }}
             className="text-sm text-muted hover:text-danger transition-colors"

@@ -1,0 +1,10 @@
+{
+  "description": "Discover and engage with a vast collection of comics, track your reading progress, and share feedback while enjoying personalized user experiences.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

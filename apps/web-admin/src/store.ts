@@ -3,12 +3,6 @@ export interface User {
   username: string
   password: string
   role: "admin" | "user"
-  email?: string
-  displayName?: string
-  avatar?: string
-  email?: string
-  displayName?: string
-  avatar?: string
 }
 
 export interface Comment {
@@ -149,8 +143,7 @@ const INITIAL_COMICS: Comic[] = [
 ]
 
 const INITIAL_USERS: User[] = [
-  { id: "u0", username: "admin", password: "admin123", role: "admin" },
-  { id: "u1", username: "reader1", password: "pass123", role: "user" },
+  { id: "u0", username: "admin", password: "admin123", role: "admin" }
 ]
 
 const INITIAL_INTERACTIONS: Record<string, Interactions> = {
@@ -183,11 +176,11 @@ const INITIAL_INTERACTIONS: Record<string, Interactions> = {
 }
 
 export function initStore() {
-  if (!load("COMICVERSE_initialized")) {
+  if (!load("comicverse_initialized")) {
     save("users", INITIAL_USERS)
     save("comics", INITIAL_COMICS)
     save("interactions", INITIAL_INTERACTIONS)
-    save("COMICVERSE_initialized", true)
+    save("comicverse_initialized", true)
   }
 }
 
@@ -199,45 +192,23 @@ export function getCurrentUser(): User | null {
   return load<User>("current_user")
 }
 
-export function saveExternalUser(user: User): User {
-  const users = getUsers()
-  save("users", [...users.filter((item) => item.id !== user.id), user])
-  save("current_user", user)
-  return user
-}
-
 export function login(username: string, password: string): User | null {
-  const user = getUsers().find((u) => u.username === username && u.password === password)
+  const user = getUsers().find(
+    (u) =>
+      u.role === "admin" &&
+      u.username === "admin" &&
+      u.password === "admin123" &&
+      username === "admin" &&
+      password === "admin123",
+  )
   if (user) save("current_user", user)
   return user ?? null
 }
 
-export function updateProfile(userId: string, profile: Pick<User, "email" | "displayName" | "avatar">): User | null {
-  const users = getUsers()
-  const user = users.find((item) => item.id === userId)
-  if (!user) return null
-  const updated = { ...user, ...profile }
-  save("users", users.map((item) => item.id === userId ? updated : item))
-  if (getCurrentUser()?.id === userId) save("current_user", updated)
-  return updated
-}
-
-export function requestPasswordReset(email: string): boolean {
-  return getUsers().some((user) => user.email?.toLowerCase() === email.toLowerCase())
-}
-
-export function resetPassword(username: string, password: string): boolean {
-  const users = getUsers()
-  const user = users.find((item) => item.username.toLowerCase() === username.toLowerCase())
-  if (!user) return false
-  save("users", users.map((item) => item.id === user.id ? { ...item, password } : item))
-  return true
-}
-
-export function register(username: string, password: string, email = ""): User | null {
+export function register(username: string, password: string): User | null {
   const users = getUsers()
   if (users.find((u) => u.username === username)) return null
-  const user: User = { id: `u${Date.now()}`, username, password, email, role: "user" }
+  const user: User = { id: `u${Date.now()}`, username, password, role: "user" }
   save("users", [...users, user])
   save("current_user", user)
   return user
